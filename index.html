@@ -1,0 +1,2252 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#140c09">
+    <title>1llum1Hearts — уютный таймер</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 110'%3E%3Cpath d='M60 102 C26 76 8 55 8 33 C8 16 21 6 35 6 C46 6 56 12 60 22 C64 12 74 6 85 6 C99 6 112 16 112 33 C112 55 94 76 60 102 Z' fill='%23ff9d6b'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;700&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ═══════════ база ═══════════ */
+        :root {
+            --bg: #140c09;
+            --panel: rgba(33, 20, 15, .87);
+            --panel2: rgba(24, 14, 11, .94);
+            --line: rgba(255, 178, 120, .16);
+            --line2: rgba(255, 178, 120, .34);
+            --text: #f7e9d9;
+            --mut: #c4a284;
+            --mut2: #8f7358;
+            --amber: #ffb46b;
+            --coral: #ff8a66;
+            --rose: #ff6f7d;
+            --gold: #ffd9a0;
+            --ink: #2a120b;
+            --disp: 'Unbounded', system-ui, sans-serif;
+            --body: 'Nunito', system-ui, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden
+        }
+
+        body {
+            background: var(--bg);
+            font-family: var(--body);
+            color: var(--text);
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        button {
+            font-family: inherit;
+            color: inherit;
+            background: none;
+            border: none;
+            cursor: pointer
+        }
+
+        input {
+            font-family: inherit
+        }
+
+        ::selection {
+            background: rgba(255, 150, 90, .35)
+        }
+
+        /* ═══════════ фоновые слои ═══════════ */
+        .bgLayer {
+            position: fixed;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            transition: opacity 1.1s ease;
+            opacity: 0;
+            z-index: 0
+        }
+
+        #fx {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none
+        }
+
+        #vig {
+            position: fixed;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            background:
+                radial-gradient(120% 95% at 50% 28%, transparent 42%, rgba(10, 5, 4, .62) 100%),
+                linear-gradient(to top, rgba(12, 6, 5, .55), transparent 34%);
+        }
+
+        /* ═══════════ splash ═══════════ */
+        #splash {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(90% 80% at 50% 42%, #241310, #120a08 78%);
+            transition: opacity .7s ease, visibility .7s
+        }
+
+        #splash.gone {
+            opacity: 0;
+            visibility: hidden
+        }
+
+        #splash svg {
+            filter: drop-shadow(0 0 26px rgba(255, 140, 90, .55));
+            animation: beat 1.15s ease-in-out infinite
+        }
+
+        .sName {
+            font-family: var(--disp);
+            font-weight: 500;
+            font-size: clamp(20px, 4vw, 30px);
+            letter-spacing: .14em
+        }
+
+        .sName b {
+            color: var(--amber);
+            font-weight: 500
+        }
+
+        .sTag {
+            font-size: 12px;
+            letter-spacing: .42em;
+            text-transform: uppercase;
+            color: var(--mut2)
+        }
+
+        @keyframes beat {
+
+            0%,
+            100% {
+                transform: scale(1)
+            }
+
+            12% {
+                transform: scale(1.12)
+            }
+
+            24% {
+                transform: scale(1)
+            }
+
+            36% {
+                transform: scale(1.08)
+            }
+
+            48% {
+                transform: scale(1)
+            }
+        }
+
+        /* ═══════════ общее для панелей ═══════════ */
+        .panel {
+            position: absolute;
+            background: linear-gradient(160deg, var(--panel), var(--panel2));
+            border: 1px solid var(--line);
+            border-radius: 26px;
+            box-shadow: 0 30px 70px -20px rgba(0, 0, 0, .7), inset 0 1px 0 rgba(255, 220, 180, .09);
+            backdrop-filter: blur(10px);
+        }
+
+        .ib {
+            display: grid;
+            place-items: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: rgba(255, 180, 110, .05);
+            transition: transform .18s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease
+        }
+
+        .ib svg {
+            width: 19px;
+            height: 19px;
+            stroke: var(--amber);
+            stroke-width: 1.8;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round
+        }
+
+        .ib:hover {
+            background: rgba(255, 180, 110, .14);
+            border-color: var(--line2);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px -6px rgba(255, 150, 90, .35)
+        }
+
+        .ib:active {
+            transform: scale(.92)
+        }
+
+        .ib.on {
+            background: linear-gradient(135deg, var(--amber), var(--coral));
+            border-color: transparent
+        }
+
+        .ib.on svg {
+            stroke: var(--ink)
+        }
+
+        /* ═══════════ левая стрелка + рельса ═══════════ */
+        #railTab {
+            position: fixed;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 46;
+            width: 26px;
+            height: 70px;
+            border-radius: 0 16px 16px 0;
+            cursor: pointer;
+            background: linear-gradient(160deg, rgba(58, 34, 22, .92), rgba(30, 17, 12, .92));
+            border: 1px solid var(--line);
+            border-left: none;
+            display: grid;
+            place-items: center;
+            transition: left .5s cubic-bezier(.22, 1, .36, 1), box-shadow .3s
+        }
+
+        #railTab svg {
+            width: 15px;
+            height: 15px;
+            stroke: var(--amber);
+            stroke-width: 2.4;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: transform .5s cubic-bezier(.22, 1, .36, 1)
+        }
+
+        #railTab:hover {
+            box-shadow: 6px 0 22px -6px rgba(255, 150, 90, .4)
+        }
+
+        #railTab.open {
+            left: 132px
+        }
+
+        #railTab.open svg {
+            transform: rotate(180deg)
+        }
+
+        #rail {
+            position: fixed;
+            left: 14px;
+            top: 50%;
+            z-index: 45;
+            width: 120px;
+            padding: 13px 12px;
+            transform: translate(-140%, -50%);
+            transition: transform .5s cubic-bezier(.22, 1, .36, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            border-radius: 20px
+        }
+
+        #rail.open {
+            transform: translate(0, -50%)
+        }
+
+        #railPreview {
+            width: 96px;
+            height: 56px;
+            border-radius: 12px;
+            border: 1px solid var(--line2);
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: transform .2s, box-shadow .2s
+        }
+
+        #railPreview:hover {
+            transform: scale(1.04);
+            box-shadow: 0 6px 18px -6px rgba(255, 150, 90, .45)
+        }
+
+        #railPreview::after {
+            content: attr(data-lbl);
+            position: absolute;
+            left: 6px;
+            bottom: 4px;
+            font-size: 9px;
+            letter-spacing: .25em;
+            text-transform: uppercase;
+            color: rgba(255, 235, 210, .85);
+            text-shadow: 0 1px 4px rgba(0, 0, 0, .8)
+        }
+
+        .railLbl {
+            font-size: 9px;
+            letter-spacing: .3em;
+            text-transform: uppercase;
+            color: var(--mut2)
+        }
+
+        .railIco {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px
+        }
+
+        /* кнопка языка */
+        .langBtn {
+            font-family: var(--disp);
+            font-weight: 500;
+            font-size: 12px;
+            letter-spacing: .18em;
+            color: var(--gold);
+            text-transform: uppercase;
+            padding: 0;
+        }
+
+        .langBtn:hover {
+            color: var(--text)
+        }
+
+        /* всплывашки у рельсы */
+        .pop {
+            position: fixed;
+            left: 150px;
+            top: 50%;
+            z-index: 44;
+            width: 264px;
+            padding: 16px;
+            transform: translate(-16px, -50%);
+            opacity: 0;
+            visibility: hidden;
+            transition: transform .35s cubic-bezier(.22, 1, .36, 1), opacity .3s, visibility .3s;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border-radius: 20px
+        }
+
+        .pop.open {
+            transform: translate(0, -50%);
+            opacity: 1;
+            visibility: visible
+        }
+
+        .pop h4 {
+            font-family: var(--disp);
+            font-weight: 400;
+            font-size: 13px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--gold)
+        }
+
+        .optBtn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: rgba(255, 180, 110, .05);
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text);
+            transition: .18s
+        }
+
+        .optBtn svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--amber);
+            stroke-width: 1.8;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round
+        }
+
+        .optBtn:hover {
+            background: rgba(255, 180, 110, .14);
+            border-color: var(--line2);
+            transform: translateX(3px)
+        }
+
+        .urlRow {
+            display: flex;
+            gap: 6px
+        }
+
+        .urlRow input {
+            flex: 1;
+            min-width: 0;
+            background: rgba(15, 8, 6, .6);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 9px 11px;
+            color: var(--text);
+            font-size: 13px;
+            outline: none;
+            transition: border-color .2s
+        }
+
+        .urlRow input:focus {
+            border-color: var(--line2)
+        }
+
+        .urlRow input::placeholder {
+            color: var(--mut2)
+        }
+
+        .urlRow button {
+            padding: 0 13px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--amber), var(--coral));
+            color: var(--ink);
+            font-weight: 800;
+            font-size: 13px;
+            transition: transform .15s, filter .15s
+        }
+
+        .urlRow button:hover {
+            filter: brightness(1.1)
+        }
+
+        .urlRow button:active {
+            transform: scale(.94)
+        }
+
+        #drop {
+            border: 1.5px dashed var(--line2);
+            border-radius: 14px;
+            padding: 18px 10px;
+            text-align: center;
+            font-size: 12.5px;
+            color: var(--mut);
+            transition: .2s;
+            line-height: 1.5;
+            white-space: pre-line
+        }
+
+        #drop.hot {
+            border-color: var(--amber);
+            background: rgba(255, 170, 100, .1);
+            color: var(--gold);
+            transform: scale(1.02)
+        }
+
+        #galList {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+            max-height: min(380px, 62vh);
+            padding-right: 4px
+        }
+
+        .galItem {
+            height: 66px;
+            border-radius: 13px;
+            border: 1px solid var(--line);
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            flex: none;
+            transition: transform .2s, border-color .2s, box-shadow .2s
+        }
+
+        .galItem:hover {
+            transform: scale(1.03);
+            border-color: var(--line2);
+            box-shadow: 0 8px 20px -8px rgba(255, 150, 90, .45)
+        }
+
+        .galItem span {
+            position: absolute;
+            left: 9px;
+            bottom: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #ffe9d2;
+            text-shadow: 0 1px 5px rgba(0, 0, 0, .9)
+        }
+
+        .galItem.cur {
+            border-color: var(--amber);
+            box-shadow: 0 0 0 1px var(--amber), 0 8px 22px -8px rgba(255, 150, 90, .55)
+        }
+
+        .galItem.cur::after {
+            content: '✓';
+            position: absolute;
+            right: 8px;
+            top: 6px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--amber);
+            color: var(--ink);
+            font-size: 12px;
+            font-weight: 800;
+            display: grid;
+            place-items: center
+        }
+
+        /* ═══════════ главная панель ═══════════ */
+        #mainPanel {
+            width: 362px;
+            z-index: 10;
+            padding: 16px 24px 20px;
+            cursor: grab;
+            display: flex;
+            flex-direction: column;
+            align-items: center
+        }
+
+        #mainPanel.dragging {
+            cursor: grabbing
+        }
+
+        .brand {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 178, 120, .09);
+            margin-bottom: 14px
+        }
+
+        .brand svg {
+            width: 15px;
+            height: 14px;
+            flex: none
+        }
+
+        .bname {
+            font-family: var(--disp);
+            font-weight: 400;
+            font-size: 11.5px;
+            letter-spacing: .24em;
+            text-transform: uppercase
+        }
+
+        .bname b {
+            color: var(--amber);
+            font-weight: 400
+        }
+
+        .grip {
+            margin-left: auto;
+            display: flex;
+            gap: 4px;
+            opacity: .55
+        }
+
+        .grip i {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--mut)
+        }
+
+        /* режим */
+        .mode {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 15px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: rgba(255, 180, 110, .05);
+            font-family: var(--disp);
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: .32em;
+            text-transform: uppercase;
+            color: var(--mut);
+            transition: .25s;
+            margin-bottom: 12px
+        }
+
+        .mode:hover {
+            border-color: var(--line2);
+            color: var(--text)
+        }
+
+        .mdot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--amber);
+            flex: none;
+            transition: .3s
+        }
+
+        .mode.break .mdot {
+            background: #8fd0a8
+        }
+
+        .mode.run {
+            color: var(--gold);
+            border-color: var(--line2)
+        }
+
+        .mode.run .mdot {
+            animation: dotPulse 1.4s ease-in-out infinite
+        }
+
+        @keyframes dotPulse {
+            50% {
+                box-shadow: 0 0 0 5px rgba(255, 180, 110, .18)
+            }
+        }
+
+        /* сердце */
+        .heartWrap {
+            position: relative;
+            width: 200px;
+            height: 183px;
+            margin: 2px 0 4px
+        }
+
+        .heartGlow {
+            position: absolute;
+            inset: -34px;
+            border-radius: 50%;
+            pointer-events: none;
+            background: radial-gradient(closest-side, rgba(255, 140, 90, .4), transparent 72%);
+            opacity: 0;
+            transition: opacity .9s ease
+        }
+
+        .heartWrap.running .heartGlow {
+            opacity: 1;
+            animation: breathe 3.2s ease-in-out infinite
+        }
+
+        @keyframes breathe {
+            50% {
+                transform: scale(1.12);
+                opacity: .75
+            }
+        }
+
+        #heartSvg {
+            position: relative;
+            display: block;
+            filter: drop-shadow(0 10px 26px rgba(0, 0, 0, .45))
+        }
+
+        .wave {
+            will-change: transform
+        }
+
+        .w1 {
+            animation: waveL 7s linear infinite
+        }
+
+        .w2 {
+            animation: waveR 11s linear infinite
+        }
+
+        @keyframes waveL {
+            to {
+                transform: translateX(-120px)
+            }
+        }
+
+        @keyframes waveR {
+            to {
+                transform: translateX(120px)
+            }
+        }
+
+        .bubble {
+            fill: #ffe8c8;
+            opacity: 0
+        }
+
+        .heartWrap.running .bubble {
+            animation: bub 3.4s ease-in infinite
+        }
+
+        .bubble.b2 {
+            animation-delay: 1.1s
+        }
+
+        .bubble.b3 {
+            animation-delay: 2.2s
+        }
+
+        @keyframes bub {
+            0% {
+                transform: translateY(0);
+                opacity: 0
+            }
+
+            18% {
+                opacity: .75
+            }
+
+            100% {
+                transform: translateY(-72px);
+                opacity: 0
+            }
+        }
+
+        .heartWrap.flash #heartSvg {
+            animation: flashUp .9s ease
+        }
+
+        @keyframes flashUp {
+            30% {
+                filter: drop-shadow(0 0 34px rgba(255, 160, 95, .95))
+            }
+        }
+
+        #playBtn {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 62px;
+            height: 62px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: rgba(22, 12, 9, .58);
+            border: 1.5px solid rgba(255, 190, 130, .45);
+            backdrop-filter: blur(3px);
+            transition: transform .2s, background .2s, border-color .2s;
+            z-index: 3
+        }
+
+        #playBtn:hover {
+            transform: translate(-50%, -50%) scale(1.08);
+            background: rgba(30, 16, 11, .75);
+            border-color: var(--amber)
+        }
+
+        #playBtn:active {
+            transform: translate(-50%, -50%) scale(.95)
+        }
+
+        #playBtn .ico {
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            fill: var(--gold);
+            transition: opacity .25s ease, transform .3s cubic-bezier(.34, 1.56, .64, 1)
+        }
+
+        #playBtn .icoPause {
+            opacity: 0;
+            transform: scale(.4) rotate(-60deg)
+        }
+
+        #playBtn.isRun .icoPlay {
+            opacity: 0;
+            transform: scale(.4) rotate(60deg)
+        }
+
+        #playBtn.isRun .icoPause {
+            opacity: 1;
+            transform: none
+        }
+
+        #playBtn::after {
+            content: '';
+            position: absolute;
+            inset: -7px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 170, 110, 0);
+            pointer-events: none
+        }
+
+        .heartWrap.running #playBtn::after {
+            animation: ring 2.3s ease-out infinite
+        }
+
+        @keyframes ring {
+            0% {
+                border-color: rgba(255, 170, 110, .4);
+                transform: scale(.92)
+            }
+
+            100% {
+                border-color: rgba(255, 170, 110, 0);
+                transform: scale(1.3)
+            }
+        }
+
+        /* время + стрелки своего времени */
+        .clockRow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 8px
+        }
+
+        .clock {
+            font-family: var(--disp);
+            font-weight: 500;
+            font-size: 43px;
+            letter-spacing: .05em;
+            line-height: 1.1;
+            cursor: pointer;
+            text-shadow: 0 0 24px rgba(255, 160, 95, .3);
+            transition: text-shadow .3s
+        }
+
+        .clock:hover {
+            text-shadow: 0 0 34px rgba(255, 170, 100, .55)
+        }
+
+        .tArrow {
+            width: 30px;
+            height: 30px;
+            flex: none;
+            border-radius: 10px;
+            border: 1px solid var(--line);
+            background: rgba(255, 180, 110, .05);
+            display: grid;
+            place-items: center;
+            transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease
+        }
+
+        .tArrow svg {
+            width: 16px;
+            height: 16px;
+            stroke: var(--amber);
+            stroke-width: 2.2;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round
+        }
+
+        .tArrow:hover {
+            border-color: var(--line2);
+            background: rgba(255, 180, 110, .14);
+            box-shadow: 0 5px 14px -6px rgba(255, 150, 90, .45)
+        }
+
+        #tPlus:hover {
+            transform: translateY(-2px)
+        }
+
+        #tMinus:hover {
+            transform: translateY(2px)
+        }
+
+        .tArrow:active {
+            transform: scale(.86)
+        }
+
+        /* пресеты */
+        .chips {
+            display: flex;
+            gap: 8px;
+            margin-top: 13px
+        }
+
+        .chip {
+            padding: 7px 15px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: rgba(255, 180, 110, .06);
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--mut);
+            transition: .2s
+        }
+
+        .chip:hover {
+            color: var(--text);
+            border-color: var(--line2);
+            transform: translateY(-2px)
+        }
+
+        .chip.on {
+            background: linear-gradient(135deg, var(--amber), var(--coral));
+            color: var(--ink);
+            border-color: transparent;
+            box-shadow: 0 6px 18px -6px rgba(255, 140, 90, .6)
+        }
+
+        /* перерыв */
+        .brkRow {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin-top: 12px
+        }
+
+        .brkLabel {
+            font-size: 11px;
+            letter-spacing: .22em;
+            text-transform: uppercase;
+            color: var(--mut2)
+        }
+
+        .step {
+            width: 25px;
+            height: 25px;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            display: grid;
+            place-items: center;
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--mut);
+            transition: .15s;
+            line-height: 1
+        }
+
+        .step:hover {
+            border-color: var(--line2);
+            color: var(--gold);
+            background: rgba(255, 180, 110, .1)
+        }
+
+        .step:active {
+            transform: scale(.88)
+        }
+
+        .brkVal {
+            font-family: var(--disp);
+            font-weight: 400;
+            font-size: 13px;
+            letter-spacing: .08em;
+            color: var(--gold);
+            min-width: 52px;
+            text-align: center
+        }
+
+        /* круги сессий */
+        .sessRow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            margin-top: 15px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 178, 120, .09)
+        }
+
+        .sBtn {
+            width: 27px;
+            height: 27px;
+            border-radius: 9px;
+            border: 1px solid var(--line);
+            display: grid;
+            place-items: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--mut);
+            transition: .15s;
+            line-height: 1;
+            flex: none
+        }
+
+        .sBtn:hover {
+            border-color: var(--line2);
+            color: var(--gold);
+            background: rgba(255, 180, 110, .1);
+            transform: scale(1.1)
+        }
+
+        .sBtn:active {
+            transform: scale(.9)
+        }
+
+        #sessDots {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            flex-wrap: wrap;
+            justify-content: center;
+            min-height: 14px
+        }
+
+        .dot {
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            border: 1.6px solid #a5764e;
+            transition: .3s;
+            animation: dotIn .45s cubic-bezier(.34, 1.56, .64, 1);
+            cursor: pointer
+        }
+
+        .dot:hover {
+            transform: scale(1.25);
+            border-color: var(--amber)
+        }
+
+        .dot.done {
+            border-color: transparent;
+            background: radial-gradient(circle at 32% 30%, var(--gold), var(--coral));
+            box-shadow: 0 0 10px rgba(255, 150, 90, .6)
+        }
+
+        @keyframes dotIn {
+            from {
+                transform: scale(0)
+            }
+        }
+
+        /* ═══════════ to-do ═══════════ */
+        #todoPanel {
+            width: 322px;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            max-height: min(560px, 86vh);
+            padding: 14px 14px 15px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(26px) scale(.98);
+            transition: opacity .35s ease, transform .35s cubic-bezier(.22, 1, .36, 1), visibility .35s
+        }
+
+        #todoPanel.open {
+            opacity: 1;
+            visibility: visible;
+            transform: none
+        }
+
+        #todoHead {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 2px 2px 12px;
+            cursor: grab;
+            border-bottom: 1px solid rgba(255, 178, 120, .09)
+        }
+
+        #todoHead:active {
+            cursor: grabbing
+        }
+
+        #todoHead h3 {
+            flex: 1;
+            text-align: center;
+            font-family: var(--disp);
+            font-weight: 400;
+            font-size: 12px;
+            letter-spacing: .3em;
+            text-transform: uppercase;
+            color: var(--gold)
+        }
+
+        .ib.xs {
+            width: 31px;
+            height: 31px;
+            border-radius: 10px
+        }
+
+        .ib.xs svg {
+            width: 16px;
+            height: 16px
+        }
+
+        #todoAdd {
+            background: linear-gradient(135deg, var(--amber), var(--coral));
+            border-color: transparent
+        }
+
+        #todoAdd svg {
+            stroke: var(--ink);
+            stroke-width: 2.4
+        }
+
+        #todoAdd:hover {
+            transform: translateY(-1px) rotate(90deg);
+            box-shadow: 0 6px 16px -5px rgba(255, 140, 90, .6)
+        }
+
+        #todoList {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 12px 3px;
+            margin: 0 -3px
+        }
+
+        #todoEmpty {
+            padding: 26px 10px;
+            text-align: center;
+            color: var(--mut2);
+            font-size: 13px;
+            font-style: italic;
+            line-height: 1.6;
+            white-space: pre-line
+        }
+
+        .task {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 11px;
+            border-radius: 14px;
+            background: rgba(255, 190, 130, .05);
+            border: 1px solid rgba(255, 190, 130, .09);
+            animation: taskIn .4s cubic-bezier(.22, 1, .36, 1);
+            transition: background .2s, opacity .3s
+        }
+
+        .task:hover {
+            background: rgba(255, 190, 130, .09)
+        }
+
+        @keyframes taskIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(.97)
+            }
+        }
+
+        .check {
+            width: 22px;
+            height: 22px;
+            flex: none;
+            margin-top: 1px;
+            border-radius: 8px;
+            border: 2px solid #a5764e;
+            display: grid;
+            place-items: center;
+            transition: .25s
+        }
+
+        .check svg {
+            width: 13px;
+            height: 13px;
+            stroke: #2a120b;
+            stroke-width: 3.2;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            opacity: 0;
+            transform: scale(.3);
+            transition: .25s cubic-bezier(.34, 1.56, .64, 1)
+        }
+
+        .check:hover {
+            border-color: var(--amber);
+            transform: scale(1.1)
+        }
+
+        .task.done .check {
+            border-color: transparent;
+            background: linear-gradient(135deg, var(--gold), var(--coral));
+            box-shadow: 0 0 10px rgba(255, 150, 90, .5)
+        }
+
+        .task.done .check svg {
+            opacity: 1;
+            transform: scale(1)
+        }
+
+        .ttext {
+            flex: 1;
+            min-width: 0;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.45;
+            outline: none;
+            word-break: break-word;
+            user-select: text;
+            -webkit-user-select: text;
+            border-radius: 6px;
+            padding: 1px 3px;
+            transition: .3s
+        }
+
+        .ttext:focus {
+            background: rgba(255, 190, 130, .07)
+        }
+
+        .ttext:empty::before {
+            content: attr(data-ph);
+            color: rgba(247, 233, 217, .32);
+            font-style: italic;
+            font-weight: 400
+        }
+
+        .task.done .ttext {
+            text-decoration: line-through;
+            opacity: .42
+        }
+
+        .tdel {
+            flex: none;
+            width: 24px;
+            height: 24px;
+            margin-top: 1px;
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
+            opacity: 0;
+            transition: .2s
+        }
+
+        .tdel svg {
+            width: 13px;
+            height: 13px;
+            stroke: var(--mut);
+            stroke-width: 2.2;
+            fill: none;
+            stroke-linecap: round
+        }
+
+        .task:hover .tdel {
+            opacity: 1
+        }
+
+        .tdel:hover {
+            background: rgba(255, 110, 90, .16)
+        }
+
+        .tdel:hover svg {
+            stroke: var(--rose)
+        }
+
+        /* прогресс to-do */
+        #todoFoot {
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 178, 120, .09)
+        }
+
+        .prow {
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .bar {
+            flex: 1;
+            height: 8px;
+            border-radius: 99px;
+            background: rgba(255, 190, 130, .13);
+            overflow: hidden
+        }
+
+        .barFill {
+            height: 100%;
+            width: 0%;
+            border-radius: 99px;
+            transition: width .55s cubic-bezier(.22, 1, .36, 1);
+            background: linear-gradient(90deg, var(--amber), var(--coral))
+        }
+
+        .pct {
+            font-family: var(--disp);
+            font-weight: 400;
+            font-size: 12px;
+            color: var(--gold);
+            min-width: 44px;
+            text-align: right
+        }
+
+        .pcount {
+            margin-top: 7px;
+            font-size: 11.5px;
+            letter-spacing: .08em;
+            color: var(--mut2);
+            text-align: center
+        }
+
+        #todoFoot.full .barFill {
+            background: linear-gradient(90deg, #ffd76e, #ff9d6b, #ff6f8a, #c98bff, #7ec8ff, #ffd76e);
+            background-size: 300% 100%;
+            animation: flow 3.2s linear infinite;
+            box-shadow: 0 0 12px rgba(255, 150, 120, .6)
+        }
+
+        #todoFoot.full .pct {
+            color: #ffd76e;
+            text-shadow: 0 0 12px rgba(255, 200, 110, .7)
+        }
+
+        @keyframes flow {
+            to {
+                background-position: 300% 0
+            }
+        }
+
+        /* ═══════════ toast ═══════════ */
+        #toast {
+            position: fixed;
+            left: 50%;
+            bottom: 30px;
+            z-index: 90;
+            transform: translate(-50%, 16px);
+            padding: 10px 20px;
+            border-radius: 999px;
+            background: rgba(38, 22, 15, .94);
+            border: 1px solid var(--line2);
+            color: var(--gold);
+            font-size: 13px;
+            font-weight: 700;
+            opacity: 0;
+            visibility: hidden;
+            transition: .35s cubic-bezier(.22, 1, .36, 1);
+            box-shadow: 0 12px 34px -10px rgba(0, 0, 0, .7);
+            pointer-events: none;
+            max-width: 86vw;
+            text-align: center
+        }
+
+        #toast.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, 0)
+        }
+
+        /* скроллбары */
+        ::-webkit-scrollbar {
+            width: 8px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 170, 110, .22);
+            border-radius: 99px
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 170, 110, .42)
+        }
+
+        @media (max-width:520px) {
+            #mainPanel {
+                width: min(92vw, 362px)
+            }
+
+            #todoPanel {
+                width: min(90vw, 322px)
+            }
+
+            .clock {
+                font-size: 36px
+            }
+
+            .pop {
+                left: 140px;
+                width: min(240px, calc(100vw - 156px))
+            }
+        }
+
+        @media (prefers-reduced-motion:reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .15s !important
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- фон + атмосфера -->
+    <div id="bgA" class="bgLayer" style="opacity:1"></div>
+    <div id="bgB" class="bgLayer"></div>
+    <canvas id="fx"></canvas>
+    <div id="vig"></div>
+
+    <!-- splash -->
+    <div id="splash">
+        <svg width="86" height="79" viewBox="0 0 120 110">
+            <path
+                d="M60 102 C26 76 8 55 8 33 C8 16 21 6 35 6 C46 6 56 12 60 22 C64 12 74 6 85 6 C99 6 112 16 112 33 C112 55 94 76 60 102 Z"
+                fill="#ff9d6b" />
+        </svg>
+        <div class="sName">1llum<b>1</b>Hearts</div>
+        <div class="sTag" data-i18n="splashTag">уютный таймер</div>
+    </div>
+
+    <!-- левая рельса -->
+    <div id="railTab" title="меню" data-i18n-title="railTabTitle">
+        <svg viewBox="0 0 24 24">
+            <path d="M9 5l7 7-7 7" />
+        </svg>
+    </div>
+    <nav id="rail" class="panel">
+        <div id="railPreview" title="текущий фон — нажмите, чтобы сменить" data-i18n-title="railPreviewTitle"
+            data-lbl="фон"></div>
+        <span class="railLbl" data-i18n="railMenu">меню</span>
+        <button class="ib railIco" id="btnFile" title="свой фон" data-i18n-title="fileIconTitle">
+            <svg viewBox="0 0 24 24">
+                <path d="M6 2.5h8l4 4V21.5H6z" />
+                <path d="M14 2.5v4h4" />
+            </svg>
+        </button>
+        <button class="ib railIco" id="btnGal" title="встроенные фоны" data-i18n-title="galIconTitle">
+            <svg viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="16" rx="2.5" />
+                <circle cx="8.6" cy="9.4" r="1.7" />
+                <path d="M21 15.5l-5-5-8.5 8.5" />
+            </svg>
+        </button>
+        <button class="ib railIco" id="btnNotes" title="заметки" data-i18n-title="notesIconTitle">
+            <svg viewBox="0 0 24 24">
+                <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v9L15.5 19H5.5A1.5 1.5 0 0 1 4 17.5z" />
+                <path d="M15.5 19v-4.5H20" />
+                <path d="M8 9h8M8 12.5h5" />
+            </svg>
+        </button>
+        <button class="ib railIco langBtn" id="btnLang" title="переключить язык" data-i18n-title="langTitle">ru</button>
+    </nav>
+
+    <!-- поповер: свой фон -->
+    <div id="popFile" class="pop panel">
+        <h4 data-i18n="fileTitle">свой фон</h4>
+        <button class="optBtn" id="optPC">
+            <svg viewBox="0 0 24 24">
+                <path
+                    d="M3.5 7.5A1.5 1.5 0 0 1 5 6h4l2 2.5h8.5A1.5 1.5 0 0 1 21 10v8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18z" />
+            </svg>
+            <span data-i18n="optPC">выбрать из файла на компьютере</span>
+        </button>
+        <button class="optBtn" id="optGal">
+            <svg viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="16" rx="2.5" />
+                <circle cx="8.6" cy="9.4" r="1.7" />
+                <path d="M21 15.5l-5-5-8.5 8.5" />
+            </svg>
+            <span data-i18n="optGal">выбрать из галереи</span>
+        </button>
+        <div class="urlRow">
+            <input id="urlIn" type="text" placeholder="вставьте ссылку на картинку…" spellcheck="false"
+                data-i18n-ph="urlPh">
+            <button id="urlOk" data-i18n="urlOk">ок</button>
+        </div>
+        <div id="drop" data-i18n="drop">перетащите картинку сюда —
+            из браузера или с компьютера</div>
+    </div>
+
+    <!-- поповер: галерея -->
+    <div id="popGal" class="pop panel">
+        <h4 data-i18n="galTitle">встроенные фоны</h4>
+        <div id="galList"></div>
+    </div>
+
+    <!-- главная панель -->
+    <section id="mainPanel" class="panel">
+        <div class="brand" title="перетащите панель" data-i18n-title="mainBrandTitle">
+            <svg viewBox="0 0 120 110">
+                <path
+                    d="M60 102 C26 76 8 55 8 33 C8 16 21 6 35 6 C46 6 56 12 60 22 C64 12 74 6 85 6 C99 6 112 16 112 33 C112 55 94 76 60 102 Z"
+                    fill="#ffb46b" />
+            </svg>
+            <span class="bname">1llum<b>1</b>Hearts</span>
+            <span class="grip"><i></i><i></i><i></i></span>
+        </div>
+
+        <button class="mode" id="modeChip" title="переключить режим" data-i18n-title="modeChipTitle">
+            <span class="mdot"></span><span id="modeName">фокус</span>
+        </button>
+
+        <div class="heartWrap" id="heartWrap">
+            <div class="heartGlow"></div>
+            <svg id="heartSvg" viewBox="0 0 120 110" width="200" height="183">
+                <defs>
+                    <linearGradient id="hStroke" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#ffd9a0" />
+                        <stop offset="1" stop-color="#ff7e6a" />
+                    </linearGradient>
+                    <linearGradient id="hFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#ffd9a0" />
+                        <stop offset=".45" stop-color="#ff9d6b" />
+                        <stop offset="1" stop-color="#ff5f6d" />
+                    </linearGradient>
+                    <clipPath id="hClip">
+                        <path
+                            d="M60 102 C26 76 8 55 8 33 C8 16 21 6 35 6 C46 6 56 12 60 22 C64 12 74 6 85 6 C99 6 112 16 112 33 C112 55 94 76 60 102 Z" />
+                    </clipPath>
+                </defs>
+                <path
+                    d="M60 102 C26 76 8 55 8 33 C8 16 21 6 35 6 C46 6 56 12 60 22 C64 12 74 6 85 6 C99 6 112 16 112 33 C112 55 94 76 60 102 Z"
+                    fill="rgba(255,160,100,.06)" />
+                <g clip-path="url(#hClip)">
+                    <g id="liquid" transform="translate(0,102)">
+                        <path class="wave w2" fill="rgba(255,220,170,.55)"
+                            d="M-240 0 q15 9 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 V170 H-240 Z" />
+                        <path class="wave w1" fill="url(#hFill)"
+                            d="M-240 0 q15 -9 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 V170 H-240 Z" />
+                        <circle class="bubble b1" cx="44" cy="92" r="2.1" />
+                        <circle class="bubble b2" cx="62" cy="98" r="1.5" />
+                        <circle class="bubble b3" cx="76" cy="90" r="2.5" />
+                    </g>
+                </g>
+                <path
+                    d="M60 102 C26 76 8 55 8 33 C8 16 21 6 35 6 C46 6 56 12 60 22 C64 12 74 6 85 6 C99 6 112 16 112 33 C112 55 94 76 60 102 Z"
+                    fill="none" stroke="url(#hStroke)" stroke-width="2.6" stroke-linejoin="round" />
+                <path d="M27 21 C21 25 16.5 30.5 16 37" stroke="rgba(255,232,205,.5)" stroke-width="3" fill="none"
+                    stroke-linecap="round" />
+            </svg>
+            <button id="playBtn" title="старт / пауза" data-i18n-title="playBtnTitle">
+                <svg class="ico icoPlay" viewBox="0 0 24 24">
+                    <path d="M8 5.2v13.6L19.2 12z" />
+                </svg>
+                <svg class="ico icoPause" viewBox="0 0 24 24">
+                    <rect x="6" y="5" width="4.3" height="14" rx="1.6" />
+                    <rect x="13.7" y="5" width="4.3" height="14" rx="1.6" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="clockRow">
+            <button class="tArrow" id="tMinus" title="убавить 1 минуту" data-i18n-title="tMinusTitle">
+                <svg viewBox="0 0 24 24">
+                    <path d="M6 9l6 6 6-6" />
+                </svg>
+            </button>
+            <div class="clock" id="clock" title="двойной клик — сброс времени" data-i18n-title="clockTitle">0:15:00
+            </div>
+            <button class="tArrow" id="tPlus" title="добавить 1 минуту" data-i18n-title="tPlusTitle">
+                <svg viewBox="0 0 24 24">
+                    <path d="M6 15l6-6 6 6" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="chips">
+            <button class="chip" data-min="60" data-i18n="chip60">1 час</button>
+            <button class="chip" data-min="30" data-i18n="chip30">30 мин</button>
+            <button class="chip on" data-min="15" data-i18n="chip15">15 мин</button>
+        </div>
+
+        <div class="brkRow">
+            <span class="brkLabel" data-i18n="brkLabel">перерыв</span>
+            <button class="step" id="brkMinus" title="меньше" data-i18n-title="brkMinusTitle">−</button>
+            <span class="brkVal" id="brkVal">05:00</span>
+            <button class="step" id="brkPlus" title="больше" data-i18n-title="brkPlusTitle">+</button>
+        </div>
+
+        <div class="sessRow">
+            <button class="sBtn" id="sessMinus" title="убрать круг" data-i18n-title="sessMinusTitle">−</button>
+            <div id="sessDots"></div>
+            <button class="sBtn" id="sessPlus" title="добавить круг" data-i18n-title="sessPlusTitle">+</button>
+        </div>
+    </section>
+
+    <!-- to-do -->
+    <aside id="todoPanel" class="panel">
+        <header id="todoHead">
+            <button class="ib xs" id="todoClose" title="убрать панель" data-i18n-title="todoCloseTitle">
+                <svg viewBox="0 0 24 24">
+                    <path d="M6 6l12 12M18 6L6 18" />
+                </svg>
+            </button>
+            <h3 data-i18n="todoTitle">заметки</h3>
+            <button class="ib xs" id="todoAdd" title="добавить задачу" data-i18n-title="todoAddTitle">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 5v14M5 12h14" />
+                </svg>
+            </button>
+        </header>
+        <div id="todoList"></div>
+        <div id="todoEmpty" data-i18n="todoEmpty">пока пусто…
+            нажмите «+», чтобы добавить задачу</div>
+        <footer id="todoFoot">
+            <div class="prow">
+                <div class="bar">
+                    <div class="barFill" id="barFill"></div>
+                </div>
+                <span class="pct" id="pct">—</span>
+            </div>
+            <div class="pcount" id="pcount">пока нет задач</div>
+        </footer>
+    </aside>
+
+    <div id="toast"></div>
+    <input type="file" id="filePC" accept="image/*" hidden>
+    <input type="file" id="fileGalIn" accept="image/*" hidden>
+
+    <script>
+        'use strict';
+        const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+        const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        /* ── хранение ── */
+        const store = {
+            get(k, d) { try { const v = localStorage.getItem('ih1:' + k); return v == null ? d : JSON.parse(v) } catch (e) { return d } },
+            set(k, v) { try { localStorage.setItem('ih1:' + k, JSON.stringify(v)); return true } catch (e) { return false } }
+        };
+
+        /* ── локализация ── */
+        let lang = store.get('lang', 'ru');
+        const I18N = {
+            ru: {
+                splashTag: 'уютный таймер',
+                railBg: 'фон',
+                railMenu: 'меню',
+                fileTitle: 'свой фон',
+                optPC: 'выбрать из файла на компьютере',
+                optGal: 'выбрать из галереи',
+                urlPh: 'вставьте ссылку на картинку…',
+                urlOk: 'ок',
+                drop: 'перетащите картинку сюда —\nиз браузера или с компьютера',
+                galTitle: 'встроенные фоны',
+                presetNames: { dusk: 'Тёплый вечер', candle: 'Свет свечей', stars: 'Звёздная ночь', dawn: 'Рассвет', caramel: 'Карамель', window: 'Окно', cherry: 'Вишнёвая ночь', forest: 'Тихий лес' },
+                modeFocus: 'фокус',
+                modeBreak: 'перерыв',
+                chip60: '1 час', chip30: '30 мин', chip15: '15 мин',
+                brkLabel: 'перерыв',
+                tMinusTitle: 'убавить 1 минуту',
+                tPlusTitle: 'добавить 1 минуту',
+                clockTitle: 'двойной клик — сброс времени',
+                sessMinusTitle: 'убрать круг',
+                sessPlusTitle: 'добавить круг',
+                todoTitle: 'заметки',
+                todoCloseTitle: 'убрать панель',
+                todoAddTitle: 'добавить задачу',
+                todoEmpty: 'пока пусто…\nнажмите «+», чтобы добавить задачу',
+                pctNone: '—',
+                pcountNone: 'пока нет задач',
+                pcountTpl: (d, t) => `сделано ${d} из ${t}`,
+                phTask: 'введите вашу задачу…',
+                toastBgUpdated: 'фон обновлён',
+                toastNotImage: 'это не похоже на картинку',
+                toastUrlFail: 'не удалось загрузить картинку по ссылке',
+                toastReset: 'время сброшено',
+                toastFocusDone: 'фокус завершён — время отдохнуть ♥',
+                toastBreakDone: 'перерыв окончен — за работу',
+                toastBgTemp: 'фон будет активен до перезапуска',
+                toastBgName: n => `фон: ${n}`,
+                docTitle: '1llum1Hearts — уютный таймер',
+                docTitleRun: t => `${t} · 1llum1Hearts`,
+                railPreviewTitle: 'текущий фон — нажмите, чтобы сменить',
+                fileIconTitle: 'свой фон',
+                galIconTitle: 'встроенные фоны',
+                notesIconTitle: 'заметки',
+                railTabTitle: 'меню',
+                mainBrandTitle: 'перетащите панель',
+                modeChipTitle: 'переключить режим',
+                playBtnTitle: 'старт / пауза',
+                brkMinusTitle: 'меньше',
+                brkPlusTitle: 'больше',
+                checkTitle: 'отметить',
+                delTitle: 'удалить',
+                langTitle: 'переключить язык',
+                btnLangLabel: 'ru',
+                btnLangNext: 'en'
+            },
+            en: {
+                splashTag: 'cozy timer',
+                railBg: 'bg',
+                railMenu: 'menu',
+                fileTitle: 'custom bg',
+                optPC: 'choose from your computer',
+                optGal: 'choose from gallery',
+                urlPh: 'paste image link…',
+                urlOk: 'ok',
+                drop: 'drag & drop an image here —\nfrom browser or computer',
+                galTitle: 'built-in backgrounds',
+                presetNames: { dusk: 'Warm dusk', candle: 'Candlelight', stars: 'Starry night', dawn: 'Dawn', caramel: 'Caramel', window: 'Window', cherry: 'Cherry night', forest: 'Quiet forest' },
+                modeFocus: 'focus',
+                modeBreak: 'break',
+                chip60: '1 hour', chip30: '30 min', chip15: '15 min',
+                brkLabel: 'break',
+                tMinusTitle: 'subtract 1 minute',
+                tPlusTitle: 'add 1 minute',
+                clockTitle: 'double-click to reset',
+                sessMinusTitle: 'remove circle',
+                sessPlusTitle: 'add circle',
+                todoTitle: 'notes',
+                todoCloseTitle: 'hide panel',
+                todoAddTitle: 'add task',
+                todoEmpty: 'nothing yet…\npress "+" to add a task',
+                pctNone: '—',
+                pcountNone: 'no tasks yet',
+                pcountTpl: (d, t) => `${d} of ${t} done`,
+                phTask: 'enter your task…',
+                toastBgUpdated: 'background updated',
+                toastNotImage: 'that doesn\'t look like an image',
+                toastUrlFail: 'couldn\'t load image from link',
+                toastReset: 'time reset',
+                toastFocusDone: 'focus done — time to rest ♥',
+                toastBreakDone: 'break over — back to work',
+                toastBgTemp: 'bg will be active until restart',
+                toastBgName: n => `bg: ${n}`,
+                docTitle: '1llum1Hearts — cozy timer',
+                docTitleRun: t => `${t} · 1llum1Hearts`,
+                railPreviewTitle: 'current bg — click to change',
+                fileIconTitle: 'custom bg',
+                galIconTitle: 'built-in backgrounds',
+                notesIconTitle: 'notes',
+                railTabTitle: 'menu',
+                mainBrandTitle: 'drag the panel',
+                modeChipTitle: 'toggle mode',
+                playBtnTitle: 'start / pause',
+                brkMinusTitle: 'less',
+                brkPlusTitle: 'more',
+                checkTitle: 'check',
+                delTitle: 'delete',
+                langTitle: 'switch language',
+                btnLangLabel: 'en',
+                btnLangNext: 'ru'
+            }
+        };
+        const t = (k, ...a) => {
+            const v = I18N[lang][k];
+            return typeof v === 'function' ? v(...a) : (v ?? k);
+        };
+        function applyI18n() {
+            document.documentElement.lang = lang;
+            $$('[data-i18n]').forEach(el => {
+                const k = el.getAttribute('data-i18n');
+                el.textContent = t(k);
+            });
+            $$('[data-i18n-ph]').forEach(el => {
+                el.placeholder = t(el.getAttribute('data-i18n-ph'));
+            });
+            $$('[data-i18n-title]').forEach(el => {
+                el.title = t(el.getAttribute('data-i18n-title'));
+            });
+            $('#railPreview').setAttribute('data-lbl', t('railBg'));
+            $('#btnLang').textContent = t('btnLangLabel');
+            renderPresetsLabels();
+            renderProgress();
+            renderTasks();
+            syncUI();
+            if (T.running) {
+                document.title = t('docTitleRun', fmt(T.left));
+            } else {
+                document.title = t('docTitle');
+            }
+        }
+
+        /* ── toast ── */
+        let toastT;
+        function toast(msg) {
+            const tt = $('#toast'); tt.textContent = msg; tt.classList.add('show');
+            clearTimeout(toastT); toastT = setTimeout(() => tt.classList.remove('show'), 2300);
+        }
+
+        /* ═══════════ встроенные фоны (файлы приложения) ═══════════ */
+        const wrapSVG = inner => `data:image/svg+xml,${encodeURIComponent(
+            `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>${inner}</svg>`)}`;
+        function sparkles(n, rMin, rMax, color, yMax) {
+            let s = ''; for (let i = 0; i < n; i++) {
+                const x = (i * 733 + 140) % 1600, y = ((i * 397) % (yMax || 560)) + 30, r = rMin + ((i * 13) % 10) / 10 * (rMax - rMin), o = .22 + ((i * 29) % 58) / 100;
+                s += `<circle cx='${x}' cy='${y}' r='${r.toFixed(1)}' fill='${color}' opacity='${o.toFixed(2)}'/>`;
+            }
+            return s;
+        }
+        const glow = (id, c, a) => `<radialGradient id='${id}'><stop offset='0' stop-color='${c}' stop-opacity='${a}'/><stop offset='1' stop-color='${c}' stop-opacity='0'/></radialGradient>`;
+
+        const PRESETS = [
+            {
+                id: 'dusk', img: wrapSVG(
+                    `<defs><linearGradient id='a' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#241014'/><stop offset='.55' stop-color='#5c2b1c'/><stop offset='1' stop-color='#c47a3d'/></linearGradient>${glow('b', '#ffd9a0', .75)}</defs>
+    <rect width='1600' height='900' fill='url(#a)'/><circle cx='800' cy='980' r='720' fill='url(#b)'/>${sparkles(16, 1, 2.2, '#ffe2b0')}`)
+            },
+            {
+                id: 'candle', img: wrapSVG(
+                    `<defs>${glow('g', '#ffb46b', .6)}${glow('g2', '#ff8a66', .5)}</defs>
+    <rect width='1600' height='900' fill='#170d0a'/>
+    <circle cx='320' cy='640' r='330' fill='url(#g)'/><circle cx='1180' cy='520' r='420' fill='url(#g2)'/>
+    <circle cx='760' cy='760' r='260' fill='url(#g)'/><circle cx='1420' cy='180' r='220' fill='url(#g2)' opacity='.5'/>
+    ${sparkles(12, 1, 1.8, '#ffdca8')}`)
+            },
+            {
+                id: 'stars', img: wrapSVG(
+                    `<defs><linearGradient id='a' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#1c1120'/><stop offset='.6' stop-color='#2a161a'/><stop offset='1' stop-color='#3d1e17'/></linearGradient>${glow('m', '#ff9d6b', .28)}</defs>
+    <rect width='1600' height='900' fill='url(#a)'/>${sparkles(90, .7, 2.1, '#ffe9cf', 700)}
+    <circle cx='1220' cy='210' r='330' fill='url(#m)'/>`)
+            },
+            {
+                id: 'dawn', img: wrapSVG(
+                    `<defs><linearGradient id='a' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#3a1c27'/><stop offset='.55' stop-color='#a44e2c'/><stop offset='1' stop-color='#ffb46b'/></linearGradient>${glow('s', '#fff0d0', .85)}</defs>
+    <rect width='1600' height='900' fill='url(#a)'/><circle cx='800' cy='700' r='260' fill='url(#s)'/>
+    <path d='M0 720 Q400 640 820 710 T1600 700 V900 H0 Z' fill='#20100e' opacity='.9'/>
+    <path d='M0 790 Q500 730 980 790 T1600 780 V900 H0 Z' fill='#150a09'/>`)
+            },
+            {
+                id: 'caramel', img: wrapSVG(
+                    `<defs><linearGradient id='a' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#3a2213'/><stop offset='.55' stop-color='#7c4a22'/><stop offset='1' stop-color='#c98a4a'/></linearGradient>${glow('c', '#ffe0b0', .35)}</defs>
+    <rect width='1600' height='900' fill='url(#a)'/><circle cx='420' cy='300' r='420' fill='url(#c)'/>
+    <circle cx='1300' cy='700' r='380' fill='url(#c)' opacity='.7'/>`)
+            },
+            {
+                id: 'window', img: wrapSVG(
+                    `<defs><linearGradient id='s' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#ffe6c0' stop-opacity='.22'/><stop offset='1' stop-color='#ffe6c0' stop-opacity='0'/></linearGradient></defs>
+    <rect width='1600' height='900' fill='#1f1310'/>
+    <polygon points='230,0 470,0 300,900 90,900' fill='url(#s)'/>
+    <polygon points='640,0 800,0 650,900 500,900' fill='url(#s)' opacity='.8'/>
+    <polygon points='1050,0 1260,0 1120,900 940,900' fill='url(#s)' opacity='.6'/>
+    ${sparkles(14, .8, 1.8, '#ffdca8')}`)
+            },
+            {
+                id: 'cherry', img: wrapSVG(
+                    `<defs>${glow('r', '#ff6f7d', .4)}${glow('r2', '#ff9d6b', .35)}</defs>
+    <rect width='1600' height='900' fill='#1f0b12'/>
+    <circle cx='380' cy='260' r='360' fill='url(#r)'/><circle cx='1250' cy='640' r='430' fill='url(#r2)'/>
+    <circle cx='900' cy='150' r='240' fill='url(#r)' opacity='.6'/>${sparkles(20, .8, 1.9, '#ffb8c4')}`)
+            },
+            {
+                id: 'forest', img: wrapSVG(
+                    `<defs><linearGradient id='a' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#13201a'/><stop offset='1' stop-color='#0b120d'/></linearGradient>${glow('f', '#ffd98f', .4)}</defs>
+    <rect width='1600' height='900' fill='url(#a)'/>
+    <circle cx='500' cy='460' r='380' fill='url(#f)' opacity='.5'/>
+    ${sparkles(30, .9, 2.4, '#ffd98f', 760)}`)
+            }
+        ];
+
+        /* переключение фона с кроссфейдом */
+        const layers = [$('#bgA'), $('#bgB')]; let front = 0;
+        let curBG = store.get('bg', { type: 'preset', id: 'dusk' });
+        function applyBG(src) {
+            const back = layers[1 - front];
+            back.style.backgroundImage = `url("${src}")`;
+            back.style.opacity = '1'; layers[front].style.opacity = '0'; front = 1 - front;
+            $('#railPreview').style.backgroundImage = `url("${src}")`;
+        }
+        function resolveBG(bg) { return bg.type === 'preset' ? (PRESETS.find(p => p.id === bg.id) || PRESETS[0]).img : bg.src; }
+        function setBG(bg, persist = true) {
+            curBG = bg; applyBG(resolveBG(bg));
+            if (persist && !store.set('bg', bg) && bg.type === 'custom') toast(t('toastBgTemp'));
+            markGallery();
+        }
+
+        /* ═══════════ рельса / поповеры ═══════════ */
+        const rail = $('#rail'), railTab = $('#railTab');
+        railTab.addEventListener('click', () => {
+            const open = rail.classList.toggle('open');
+            railTab.classList.toggle('open', open);
+            if (!open) closePops();
+        });
+        function closePops() { $('#popFile').classList.remove('open'); $('#popGal').classList.remove('open'); }
+        function openPop(el) {
+            const was = el.classList.contains('open'); closePops();
+            if (!was) { el.classList.add('open'); if (!rail.classList.contains('open')) { rail.classList.add('open'); railTab.classList.add('open'); } }
+        }
+        $('#btnFile').addEventListener('click', () => openPop($('#popFile')));
+        $('#btnGal').addEventListener('click', () => openPop($('#popGal')));
+        $('#railPreview').addEventListener('click', () => openPop($('#popGal')));
+        document.addEventListener('pointerdown', e => {
+            if (!e.target.closest('#rail,#railTab,#popFile,#popGal')) closePops();
+        });
+
+        /* галерея */
+        const galList = $('#galList');
+        function renderPresetsLabels() {
+            galList.innerHTML = '';
+            PRESETS.forEach(p => {
+                const d = document.createElement('div');
+                d.className = 'galItem'; d.dataset.id = p.id;
+                d.style.backgroundImage = `url("${p.img}")`;
+                d.innerHTML = `<span>${t('presetNames')[p.id] || p.id}</span>`;
+                d.addEventListener('click', () => { setBG({ type: 'preset', id: p.id }); toast(t('toastBgName', t('presetNames')[p.id])); });
+                galList.appendChild(d);
+            });
+            markGallery();
+        }
+        function markGallery() {
+            $$('.galItem').forEach(el =>
+                el.classList.toggle('cur', curBG.type === 'preset' && el.dataset.id === curBG.id));
+        }
+
+        /* свой фон: файлы / ссылка / drag-and-drop */
+        function readFile(f) {
+            if (!f || !f.type.startsWith('image/')) { toast(t('toastNotImage')); return; }
+            const r = new FileReader();
+            r.onload = () => { setBG({ type: 'custom', src: r.result }); toast(t('toastBgUpdated')); };
+            r.readAsDataURL(f);
+        }
+        $('#optPC').addEventListener('click', () => $('#filePC').click());
+        $('#optGal').addEventListener('click', () => $('#fileGalIn').click());
+        $('#filePC').addEventListener('change', e => { readFile(e.target.files[0]); e.target.value = ''; });
+        $('#fileGalIn').addEventListener('change', e => { readFile(e.target.files[0]); e.target.value = ''; });
+        function applyURL() {
+            const u = $('#urlIn').value.trim(); if (!u) return;
+            const im = new Image();
+            im.onload = () => { setBG({ type: 'custom', src: u }); $('#urlIn').value = ''; toast(t('toastBgUpdated')); };
+            im.onerror = () => toast(t('toastUrlFail'));
+            im.src = u;
+        }
+        $('#urlOk').addEventListener('click', applyURL);
+        $('#urlIn').addEventListener('keydown', e => { if (e.key === 'Enter') applyURL(); });
+        const drop = $('#drop');
+        ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('hot'); }));
+        ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('hot'); }));
+        drop.addEventListener('drop', e => readFile(e.dataTransfer.files[0]));
+
+        /* ═══════════ таймер ═══════════ */
+        const liquid = $('#liquid'), clock = $('#clock'), playBtn = $('#playBtn'),
+            heartWrap = $('#heartWrap'), modeChip = $('#modeChip'), modeName = $('#modeName');
+        const T = {
+            mode: 'focus', running: false,
+            focus: store.get('focusDur', 15 * 60000),
+            brk: store.get('breakDur', 5 * 60000),
+            left: store.get('focusDur', 15 * 60000), end: 0
+        };
+        const pad = n => String(n).padStart(2, '0');
+        function fmt(ms) {
+            const h = Math.floor(ms / 3600000), m = Math.floor(ms % 3600000 / 60000), s = Math.floor(ms % 60000 / 1000);
+            return `${h}:${pad(m)}:${pad(s)}`;
+        }
+        function fmtShort(ms) { return `${pad(Math.floor(ms / 60000))}:${pad(Math.floor(ms % 60000 / 1000))}`; }
+        function fillRatio() {
+            return T.mode === 'focus'
+                ? Math.min(1, Math.max(0, 1 - T.left / T.focus))
+                : Math.min(1, Math.max(0, T.left / T.brk));
+        }
+        function renderHeart() { liquid.setAttribute('transform', `translate(0,${(102 - 96 * fillRatio()).toFixed(2)})`); }
+        function renderClock() {
+            clock.textContent = fmt(T.left);
+            document.title = T.running ? t('docTitleRun', fmt(T.left)) : t('docTitle');
+        }
+        function syncUI() {
+            playBtn.classList.toggle('isRun', T.running);
+            heartWrap.classList.toggle('running', T.running);
+            modeChip.classList.toggle('run', T.running);
+            modeChip.classList.toggle('break', T.mode === 'break');
+            modeName.textContent = T.mode === 'focus' ? t('modeFocus') : t('modeBreak');
+            $$('.chip').forEach(c => c.classList.toggle('on',
+                T.mode === 'focus' && +c.dataset.min * 60000 === T.focus));
+            $('#brkVal').textContent = fmtShort(T.brk);
+            renderClock(); renderHeart();
+        }
+        function toggleRun() {
+            ensureAudio();
+            if (T.running) { T.running = false; }
+            else {
+                if (T.left <= 0) T.left = T.mode === 'focus' ? T.focus : T.brk;
+                T.end = Date.now() + T.left; T.running = true;
+            }
+            syncUI();
+        }
+        playBtn.addEventListener('click', toggleRun);
+        modeChip.addEventListener('click', () => {
+            T.running = false;
+            T.mode = T.mode === 'focus' ? 'break' : 'focus';
+            T.left = T.mode === 'focus' ? T.focus : T.brk;
+            syncUI();
+        });
+        $$('.chip').forEach(c => c.addEventListener('click', () => {
+            T.mode = 'focus'; T.running = false;
+            T.focus = +c.dataset.min * 60000; T.left = T.focus;
+            store.set('focusDur', T.focus); syncUI();
+        }));
+        clock.addEventListener('dblclick', () => {
+            T.running = false; T.left = T.mode === 'focus' ? T.focus : T.brk; syncUI(); toast(t('toastReset'));
+        });
+
+        /* своё время: стрелки ±1 минута у часов */
+        $('#tPlus').addEventListener('click', () => stepMinute(1));
+        $('#tMinus').addEventListener('click', () => stepMinute(-1));
+        function stepMinute(dir) {
+            T.focus = Math.min(24 * 3600000, Math.max(60000, T.focus + dir * 60000));
+            store.set('focusDur', T.focus);
+            if (T.mode === 'break') {
+                T.mode = 'focus'; T.running = false; T.left = T.focus;
+            } else if (T.running) {
+                T.left = Math.min(24 * 3600000, Math.max(60000, T.left + dir * 60000));
+                T.end = Date.now() + T.left;
+            } else {
+                T.left = T.focus;
+            }
+            syncUI();
+        }
+
+        $('#brkMinus').addEventListener('click', () => stepBrk(-1));
+        $('#brkPlus').addEventListener('click', () => stepBrk(1));
+        function stepBrk(d) {
+            T.brk = Math.min(90 * 60000, Math.max(60000, T.brk + d * 60000));
+            store.set('breakDur', T.brk);
+            if (T.mode === 'break' && !T.running) T.left = T.brk;
+            syncUI();
+        }
+        function complete() {
+            T.running = false; chime();
+            heartWrap.classList.add('flash');
+            setTimeout(() => heartWrap.classList.remove('flash'), 950);
+            if (T.mode === 'focus') {
+                addDoneCircle();
+                T.mode = 'break'; T.left = T.brk; T.end = Date.now() + T.brk; T.running = true;
+                toast(t('toastFocusDone'));
+            } else {
+                T.mode = 'focus'; T.left = T.focus;
+                toast(t('toastBreakDone'));
+            }
+            syncUI();
+        }
+        setInterval(() => {
+            if (!T.running) return;
+            T.left = Math.max(0, T.end - Date.now());
+            if (T.left <= 0) { complete(); return; }
+            renderClock(); renderHeart();
+        }, 200);
+        document.addEventListener('keydown', e => {
+            if (e.code !== 'Space') return;
+            const el = e.target;
+            if (el.closest('input,textarea,[contenteditable="true"]')) return;
+            e.preventDefault(); toggleRun();
+        });
+
+        /* звук */
+        let AC = null;
+        function ensureAudio() {
+            if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)() } catch (e) { } }
+            if (AC && AC.state === 'suspended') AC.resume();
+        }
+        function chime() {
+            ensureAudio(); if (!AC) return;
+            const t0 = AC.currentTime;
+            [523.25, 659.25, 783.99].forEach((f, i) => {
+                const o = AC.createOscillator(), g = AC.createGain();
+                o.type = 'sine'; o.frequency.value = f;
+                g.gain.setValueAtTime(0, t0 + i * .17);
+                g.gain.linearRampToValueAtTime(.11, t0 + i * .17 + .02);
+                g.gain.exponentialRampToValueAtTime(.0001, t0 + i * .17 + .95);
+                o.connect(g).connect(AC.destination);
+                o.start(t0 + i * .17); o.stop(t0 + i * .17 + 1.05);
+            });
+        }
+
+        /* ═══════════ круги сессий ═══════════ */
+        let circles = store.get('circles', [false, false, false, false]);
+        function renderCircles() {
+            const box = $('#sessDots'); box.innerHTML = '';
+            circles.forEach((done, i) => {
+                const d = document.createElement('span');
+                d.className = 'dot' + (done ? ' done' : '');
+                d.style.animationDelay = (i * 45) + 'ms';
+                d.addEventListener('click', () => {
+                    circles[i] = !circles[i];
+                    renderCircles();
+                });
+                box.appendChild(d);
+            });
+            store.set('circles', circles);
+        }
+        function addDoneCircle() {
+            const i = circles.indexOf(false);
+            if (i >= 0) circles[i] = true; else circles.push(true);
+            renderCircles();
+        }
+        $('#sessPlus').addEventListener('click', () => { circles.push(false); renderCircles(); });
+        $('#sessMinus').addEventListener('click', () => { if (circles.length) { circles.pop(); renderCircles(); } });
+
+        /* ═══════════ to-do ═══════════ */
+        let tasks = store.get('tasks', []);
+        const todoPanel = $('#todoPanel'), todoList = $('#todoList');
+        function saveTasks() { store.set('tasks', tasks); }
+        function renderTasks(focusLast = false) {
+            todoList.innerHTML = '';
+            $('#todoEmpty').style.display = tasks.length ? 'none' : 'block';
+            tasks.forEach(task => {
+                const row = document.createElement('div');
+                row.className = 'task' + (task.done ? ' done' : ''); row.dataset.id = task.id;
+                row.innerHTML = `
+      <button class="check" title="${t('checkTitle')}"><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L19.5 7"/></svg></button>
+      <div class="ttext" contenteditable="true" spellcheck="false" data-ph="${t('phTask')}"></div>
+      <button class="tdel" title="${t('delTitle')}"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
+                const txt = row.querySelector('.ttext');
+                txt.textContent = task.text;
+                txt.addEventListener('input', () => {
+                    task.text = txt.innerText;
+                    if (!txt.innerText.trim()) txt.innerHTML = '';
+                    saveTasks();
+                });
+                txt.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addTask(); } });
+                row.querySelector('.check').addEventListener('click', () => {
+                    task.done = !task.done; saveTasks(); renderTasks();
+                });
+                row.querySelector('.tdel').addEventListener('click', () => {
+                    row.style.opacity = '0'; row.style.transform = 'translateX(18px)'; row.style.transition = '.25s';
+                    setTimeout(() => { tasks = tasks.filter(x => x.id !== task.id); saveTasks(); renderTasks(); }, 240);
+                });
+                todoList.appendChild(row);
+            });
+            if (focusLast && tasks.length) {
+                const last = todoList.lastElementChild.querySelector('.ttext');
+                todoList.scrollTop = todoList.scrollHeight; last.focus();
+            }
+            renderProgress();
+        }
+        function renderProgress() {
+            const total = tasks.length, done = tasks.filter(x => x.done).length;
+            const pct = total ? Math.round(done / total * 100) : 0;
+            $('#barFill').style.width = pct + '%';
+            $('#pct').textContent = total ? pct + '%' : t('pctNone');
+            $('#pcount').textContent = total ? t('pcountTpl', done, total) : t('pcountNone');
+            $('#todoFoot').classList.toggle('full', total > 0 && done === total);
+        }
+        function addTask() {
+            tasks.push({ id: Date.now() + '' + Math.floor(Math.random() * 999), text: '', done: false });
+            saveTasks(); renderTasks(true);
+        }
+        $('#todoAdd').addEventListener('click', addTask);
+        function openTodo() { todoPanel.classList.add('open'); $('#btnNotes').classList.add('on'); placeTodoDefault(true); }
+        function closeTodo() { todoPanel.classList.remove('open'); $('#btnNotes').classList.remove('on'); }
+        $('#todoClose').addEventListener('click', closeTodo);
+        $('#btnNotes').addEventListener('click', () => todoPanel.classList.contains('open') ? closeTodo() : openTodo());
+
+        /* ═══════════ переключение языка ═══════════ */
+        $('#btnLang').addEventListener('click', () => {
+            lang = lang === 'ru' ? 'en' : 'ru';
+            store.set('lang', lang);
+            applyI18n();
+        });
+
+        /* ═══════════ перетаскивание панелей ═══════════ */
+        let zTop = 30;
+        const bringFront = el => el.style.zIndex = ++zTop;
+        function makeDraggable(el, handle, key) {
+            let drag = false, sx = 0, sy = 0, ox = 0, oy = 0;
+            handle.addEventListener('pointerdown', e => {
+                if (e.target.closest('button,input,textarea,a,[contenteditable="true"]')) return;
+                drag = true; el.setPointerCapture(e.pointerId);
+                const r = el.getBoundingClientRect();
+                sx = e.clientX; sy = e.clientY; ox = r.left; oy = r.top;
+                el.classList.add('dragging'); bringFront(el);
+            });
+            handle.addEventListener('pointermove', e => {
+                if (!drag) return;
+                const r = el.getBoundingClientRect();
+                let x = ox + e.clientX - sx, y = oy + e.clientY - sy;
+                x = Math.max(-r.width + 70, Math.min(x, innerWidth - 70));
+                y = Math.max(4, Math.min(y, innerHeight - 54));
+                el.style.left = x + 'px'; el.style.top = y + 'px';
+            });
+            const stop = () => {
+                if (!drag) return; drag = false; el.classList.remove('dragging');
+                const r = el.getBoundingClientRect(); store.set(key, { x: r.left, y: r.top });
+            };
+            handle.addEventListener('pointerup', stop);
+            handle.addEventListener('pointercancel', stop);
+        }
+        function place(el, key, defX, defY, soft) {
+            const saved = store.get(key, null);
+            let x, y;
+            if (saved && !soft) { x = saved.x; y = saved.y; }
+            else if (soft && el.style.left) { return; }
+            else { x = defX(); y = defY(); }
+            const r = el.getBoundingClientRect();
+            x = Math.max(-r.width + 70, Math.min(x, innerWidth - 70));
+            y = Math.max(4, Math.min(y, innerHeight - 54));
+            el.style.left = x + 'px'; el.style.top = y + 'px';
+        }
+        const mainPanel = $('#mainPanel');
+        makeDraggable(mainPanel, mainPanel, 'pos-main');
+        makeDraggable(todoPanel, $('#todoHead'), 'pos-todo');
+        function placeAll() {
+            place(mainPanel, 'pos-main',
+                () => Math.max(8, (innerWidth - mainPanel.offsetWidth) / 2),
+                () => Math.max(14, (innerHeight - mainPanel.offsetHeight) / 2 - 8));
+            place(todoPanel, 'pos-todo',
+                () => Math.max(8, innerWidth - todoPanel.offsetWidth - 26),
+                () => Math.max(20, innerHeight * .12), true);
+        }
+        function placeTodoDefault(onlyIfEmpty) {
+            if (onlyIfEmpty && todoPanel.style.left) return;
+            place(todoPanel, 'pos-todo',
+                () => Math.max(8, innerWidth - todoPanel.offsetWidth - 26),
+                () => Math.max(20, innerHeight * .12));
+        }
+        addEventListener('resize', () => {
+            [mainPanel, todoPanel].forEach(el => {
+                const r = el.getBoundingClientRect();
+                el.style.left = Math.max(-r.width + 70, Math.min(r.left, innerWidth - 70)) + 'px';
+                el.style.top = Math.max(4, Math.min(r.top, innerHeight - 54)) + 'px';
+            });
+            sizeFX();
+        });
+
+        /* ═══════════ частицы-светлячки ═══════════ */
+        const fx = $('#fx'), fctx = fx.getContext('2d'); let W = 0, H = 0, PS = [];
+        function sizeFX() {
+            const dpr = Math.min(2, devicePixelRatio || 1);
+            W = innerWidth; H = innerHeight;
+            fx.width = W * dpr; fx.height = H * dpr;
+            fx.style.width = W + 'px'; fx.style.height = H + 'px';
+            fctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+        function initFX() {
+            sizeFX();
+            if (REDUCED) return;
+            const N = Math.min(44, Math.floor(innerWidth / 28));
+            PS = Array.from({ length: N }, () => ({
+                x: Math.random() * W, y: Math.random() * H,
+                r: .6 + Math.random() * 1.8,
+                vy: -(.06 + Math.random() * .24),
+                ph: Math.random() * Math.PI * 2,
+                sw: .3 + Math.random() * .7,
+                warm: Math.random() > .22
+            }));
+            (function loop() {
+                fctx.clearRect(0, 0, W, H);
+                fctx.globalCompositeOperation = 'lighter';
+                const now = performance.now() / 1000;
+                for (const p of PS) {
+                    p.y += p.vy; p.x += Math.sin(now * p.sw + p.ph) * .18;
+                    if (p.y < -12) { p.y = H + 10; p.x = Math.random() * W; }
+                    const a = .18 + .3 * (.5 + .5 * Math.sin(now * 1.4 + p.ph * 3));
+                    fctx.beginPath();
+                    fctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    fctx.fillStyle = p.warm ? `rgba(255,190,130,${a})` : `rgba(255,140,150,${a * .8})`;
+                    fctx.fill();
+                }
+                requestAnimationFrame(loop);
+            })();
+        }
+
+        /* ═══════════ старт ═══════════ */
+        applyBG(resolveBG(curBG));
+        renderPresetsLabels();
+        renderCircles();
+        renderTasks();
+        applyI18n();
+        placeAll();
+        initFX();
+        const splash = $('#splash');
+        setTimeout(() => splash.classList.add('gone'), 1500);
+        splash.addEventListener('click', () => splash.classList.add('gone'));
+    </script>
+</body>
+
+</html>
