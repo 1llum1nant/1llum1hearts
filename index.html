@@ -2127,20 +2127,31 @@
         let zTop = 30;
         const bringFront = el => el.style.zIndex = ++zTop;
         function makeDraggable(el, handle, key) {
-            let drag = false, sx = 0, sy = 0, ox = 0, oy = 0;
+            let drag = false, pid = null, offX = 0, offY = 0;
             handle.addEventListener('pointerdown', e => {
-                if (e.target.closest('button,input,textarea,a,[contenteditable="true"],#ytResize')) return;
-                drag = true; el.setPointerCapture(e.pointerId);
-                const r = el.getBoundingClientRect(); sx = e.clientX; sy = e.clientY; ox = r.left; oy = r.top;
+                if (e.button !== undefined && e.button > 0) return;
+                if (e.target.closest('button,input,textarea,a,[contenteditable="true"],#ytResize,#ytVideoWrap')) return;
+                pid = e.pointerId;
+                try { handle.setPointerCapture(pid); } catch (err) { }
+                const r = el.getBoundingClientRect();
+                offX = e.clientX - r.left; offY = e.clientY - r.top;
+                drag = true;
                 el.classList.add('dragging'); bringFront(el);
+                e.preventDefault();
             });
             handle.addEventListener('pointermove', e => {
-                if (!drag) return; const r = el.getBoundingClientRect();
-                let x = ox + e.clientX - sx, y = oy + e.clientY - sy;
+                if (!drag || e.pointerId !== pid) return; const r = el.getBoundingClientRect();
+                let x = e.clientX - offX, y = e.clientY - offY;
                 x = Math.max(-r.width + 70, Math.min(x, innerWidth - 70)); y = Math.max(4, Math.min(y, innerHeight - 54));
                 el.style.left = x + 'px'; el.style.top = y + 'px';
             });
-            const stop = () => { if (!drag) return; drag = false; el.classList.remove('dragging'); const r = el.getBoundingClientRect(); store.set(key, { x: r.left, y: r.top }); };
+            const stop = e => {
+                if (!drag || (e && e.pointerId !== pid)) return;
+                drag = false; pid = null;
+                try { handle.releasePointerCapture(e.pointerId); } catch (err) { }
+                el.classList.remove('dragging');
+                const r = el.getBoundingClientRect(); store.set(key, { x: r.left, y: r.top });
+            };
             handle.addEventListener('pointerup', stop); handle.addEventListener('pointercancel', stop);
         }
         function place(el, key, defX, defY, soft) {
